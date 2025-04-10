@@ -1,10 +1,36 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import supabase from "../lib/supabaseClient.js";
+import { v4 as uuidv4 } from "uuid";
 
 /* REGISTER USER */
 export const register = async (req, res) => {
   try {
+    const file = req.file;
+    let imageUrl = "";
+
+    if (file) {
+      const filename = `profile/${uuidv4()}_${file.originalname}`;
+
+      const { data, error } = await supabase.storage
+        .from("user-data")
+        .upload(filename, file.buffer, {
+          contentType: file.mimetype,
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: publicURL } = supabase.storage
+        .from("user-data")
+        .getPublicUrl(filename);
+
+      imageUrl = publicURL.publicUrl;
+    }
+
     const {
       firstName,
       lastName,
@@ -24,7 +50,7 @@ export const register = async (req, res) => {
       lastName,
       email,
       password: passwordHash,
-      picturePath,
+      picturePath: imageUrl,
       friends,
       location,
       occupation,
