@@ -1,5 +1,7 @@
 import Post from "../models/Post.js";
 import User from "../models/User.js";
+import supabase from "../lib/supabaseClient.js";
+import { v4 as uuidv4 } from "uuid";
 
 /* CREATE */
 export const createPost = async (req, res) => {
@@ -47,6 +49,7 @@ export const createPost = async (req, res) => {
     const post = await Post.find();
     res.status(201).json(post);
   } catch (err) {
+    console.error(err);
     res.status(409).json({ message: err.message });
   }
 };
